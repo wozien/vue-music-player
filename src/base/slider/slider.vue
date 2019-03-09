@@ -30,7 +30,7 @@ export default {
     // 播放间隔
     interval: {
       type: Number,
-      default: 4000
+      default: 3000
     }
   },
   data () {
@@ -58,16 +58,33 @@ export default {
       // 节流处理
       clearTimeout(this.resizeTimer)
       this.resizeTimer = setTimeout(() => {
-        if (this.slider.isInTransition) {
-          this.onScrollEnd()
-        } else {
-          if (this.autoPlay) {
-            this.play()
-          }
-        }
+        // if (this.slider.isInTransition) {
+        //   this.onScrollEnd()
+        // } else {
+        //   if (this.autoPlay) {
+        //     this.play()
+        //   }
+        // }
         this.refresh()
       }, 60)
     })
+  },
+  activated () {
+    this.slider.enable()
+    let pageIndex = this.slider.getCurrentPage().pageX
+    this.slider.goToPage(pageIndex, 0, 0)
+    this.currentPageIndex = pageIndex
+    if (this.autoPlay) {
+      this.play()
+    }
+  },
+  deactivated () {
+    this.slider.disable()
+    clearTimeout(this.timer)
+  },
+  beforeDestroy () {
+    this.slider.disable()
+    clearTimeout(this.timer)
   },
   methods: {
     refresh () {
@@ -107,14 +124,10 @@ export default {
         }
       })
 
+      // 滚动结束事件
       this.slider.on('scrollEnd', this.onScrollEnd)
 
-      this.slider.on('touchend', () => {
-        if (this.autoPlay) {
-          this.play()
-        }
-      })
-
+      // 开始滑动时 清除自动滑动计时
       this.slider.on('beforeScrollStart', () => {
         if (this.autoPlay) {
           clearTimeout(this.timer)
@@ -131,8 +144,8 @@ export default {
       this.dots = new Array(this.children.length)
     },
     play () {
-      clearInterval(this.timer)
-      this.timer = setInterval(() => {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => {
         this.slider.next()
       }, this.interval)
     }
@@ -144,10 +157,11 @@ export default {
 @import "~common/stylus/variable"
 
 .slider
-  position: relative
-  // overflow: hidden
+  position relative
+  min-height 1px
   .slider-group
-    overflow: hidden
+    overflow hidden
+    white-space nowrap
     .slider-item
       float left
       box-sizing border-box
