@@ -1,6 +1,7 @@
 <template>
   <div class="signer">
-    <list-view :list="singers"></list-view>
+    <list-view :list="singers" @select="onSingerSelect"></list-view>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -24,6 +25,11 @@ export default {
     this._getSingerList()
   },
   methods: {
+    onSingerSelect(item) {
+      this.$router.push({
+        path: `/singer/${item.id}`
+      })
+    },
     _getSingerList() {
       getSingerList().then((res) => {
         if (res.code === ERR_OK) {

@@ -6,14 +6,14 @@
       <li class="list-group" v-for="(group, index) in list" :key="index" ref="listGroup">
         <h2 class="list-group-title">{{ group.title }}</h2>
         <ul>
-          <li class="list-group-item" v-for="item in group.items" :key="item.id">
+          <li class="list-group-item" v-for="item in group.items" :key="item.id" @click="onSelect(item)">
             <img class="avatar" v-lazy="item.avatar">
             <span class="name">{{ item.name }}</span>
           </li>
         </ul>
       </li>
     </ul>
-    <div class="list-shortcut">
+    <div class="list-shortcut" v-if="shortcutList.length">
       <ul>
         <li class="item" v-for="(item, index) in shortcutList" :key="index"
             :data-index="index"
@@ -76,6 +76,9 @@ export default {
     }
   },
   methods: {
+    onSelect(item) {
+      this.$emit('select', item)
+    },
     // 导航字母栏点击
     onShortcutStart(e) {
       let index = +getData(e.target, 'index')
