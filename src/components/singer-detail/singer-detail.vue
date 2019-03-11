@@ -6,9 +6,49 @@
 </template>
 
 <script>
-export default {
-  name: 'SingerDetail'
+import {mapGetters} from 'vuex'
+import {getSingerDetail} from 'api/singer'
+import {ERR_OK} from 'api/config'
+import {createSong, processSongUrl} from 'common/js/song'
 
+export default {
+  name: 'SingerDetail',
+  data () {
+    return {
+      songs: []
+    }
+  },
+  computed: {
+    ...mapGetters(['singer'])
+  },
+  created() {
+    this._getDetail()
+  },
+  methods: {
+    _getDetail() {
+      if (!this.singer.id) {
+        this.$router.push('/singer')
+        return
+      }
+      getSingerDetail(this.singer.id).then((res) => {
+        if (res.code === ERR_OK) {
+          processSongUrl(this._normalizaSongs(res.data.list)).then((songs) => {
+            this.songs = songs
+            console.log(songs)
+          })
+        }
+      })
+    },
+    _normalizaSongs(list) {
+      let res = []
+      list.forEach(({musicData}) => {
+        if (musicData.songid && musicData.albummid) {
+          res.push(createSong(musicData))
+        }
+      })
+      return res
+    }
+  }
 }
 </script>
 
