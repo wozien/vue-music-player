@@ -31,6 +31,7 @@ export function getSongUrl(songs) {
         comm: data,
         req_0: urlMid
       }).then((res) => {
+        console.log(res)
         res = res.data
         if (res.code === ERR_OK) {
           let urlMid = res.req_0

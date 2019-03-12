@@ -37,6 +37,11 @@ function joinSinger(singer) {
   return res.join('/')
 }
 
+// 过滤付费歌曲
+export function isValidMusic(musicData) {
+  return musicData.songid && musicData.albummid && (!musicData.pay || musicData.pay.payalbumprice === 0)
+}
+
 // 获取歌曲的url -- 代理方式
 export function processSongUrl(songs) {
   if (!songs.length) {

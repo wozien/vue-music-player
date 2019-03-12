@@ -44,8 +44,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
         axios.post(url, req.body, {
             headers: {
-              referer: 'https://y.qq.com/',
-              origin: 'https://y.qq.com',
+              'referer': 'https://y.qq.com/',
+              'origin': 'https://y.qq.com',
               'Content-type': 'application/x-www-form-urlencoded'
             }
           }).then((response) => {
@@ -53,6 +53,10 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           }).catch((e) => {
             console.log(e)
         })
+      })
+      
+      app.get('/hello', (req, res) => {
+        res.send('hello')
       })
     },
     clientLogLevel: 'warning',
