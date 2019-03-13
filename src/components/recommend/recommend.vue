@@ -80,6 +80,7 @@ export default {
 
 <style lang="stylus" scoped>
 @import "~common/stylus/variable"
+@import "~common/stylus/mixin"
 
 .recommend
   position fixed
@@ -124,9 +125,6 @@ export default {
             color $color-text-d
 
     .loading-container
-      position absolute
-      top 50%
-      transform translateY(-50%)
-      width 100%
+      loading-container()
 
 </style>

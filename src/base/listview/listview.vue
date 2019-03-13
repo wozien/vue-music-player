@@ -161,6 +161,7 @@ export default {
 
 <style lang="stylus" scoped>
 @import "~common/stylus/variable"
+@import "~common/stylus/mixin"
 
 .listview
   position relative
@@ -223,8 +224,5 @@ export default {
       background: $color-highlight-background
 
   .loading-container
-    position: absolute
-    width: 100%
-    top: 50%
-    transform: translateY(-50%)
+    loading-container()
 </style>
