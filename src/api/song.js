@@ -37,7 +37,7 @@ export function getSongUrl(songs) {
           let urlMid = res.req_0
           if (urlMid && urlMid.code === ERR_OK) {
             const info = urlMid.data.midurlinfo[0]
-            if (info && info.purl) {
+            if (info) {
               resolve(urlMid.data.midurlinfo)
             } else {
               poll()

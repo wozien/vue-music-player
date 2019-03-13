@@ -4,8 +4,9 @@
     <div class="bg-image" :style="bgStyle" ref="bgImage">
       <div class="filter"></div>
     </div>
-
-    <scroll class="scroll-list" :data="songs" ref="scrollList">
+    <div class="layer" ref="layer"></div>
+    <scroll class="scroll-list" :data="songs" ref="scrollList"
+            :probeType="probeType" :listen-scroll="listenScroll" @scroll="scroll">
       <div class="songs-list-wrapper">
         <song-list :songs="songs"></song-list>
       </div>
@@ -16,6 +17,9 @@
 <script>
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
+
+// 标题的高度
+const TITLE_HEIGHT = 40
 
 export default {
   name: 'MusicList',
@@ -33,14 +37,37 @@ export default {
       default: () => []
     }
   },
+  data() {
+    return {
+      scrollY: 0
+    }
+  },
   computed: {
     bgStyle() {
       return `background-image: url(${this.bgImage})`
     }
   },
+  created() {
+    this.probeType = 3
+    this.listenScroll = true
+  },
   mounted() {
+    // 背景图高度
     this.imageHeight = this.$refs.bgImage.clientHeight
+    // 计算歌单可以向上滚动的距离
+    this.minTranslateY = -this.imageHeight + TITLE_HEIGHT
     this.$refs.scrollList.$el.style.top = this.imageHeight + 'px'
+  },
+  methods: {
+    scroll(pos) {
+      this.scrollY = pos.y
+    }
+  },
+  watch: {
+    scrollY(newY) {
+      let translateY = Math.max(this.minTranslateY, newY)
+      this.$refs.layer.style['transform'] = `translate3d(0, ${translateY}px, 0)`
+    }
   },
   components: {
     Scroll,
@@ -76,8 +103,8 @@ export default {
     width 100%
     height 0
     padding-top 70%
-    background-size cover
-    transform-origin top
+    transform-origin: top
+    background-size: cover
 
     .filter
       position absolute
@@ -86,6 +113,11 @@ export default {
       width 100%
       height 100%
       background rgba(7, 17, 27, 0.4)
+
+  .layer
+    position relative
+    height 100%
+    background $color-background
 
   .scroll-list
     position fixed
