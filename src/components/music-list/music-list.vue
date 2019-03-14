@@ -17,7 +17,7 @@
     <scroll class="scroll-list" :data="songs" ref="scrollList"
             :probeType="probeType" :listen-scroll="listenScroll" @scroll="scroll">
       <div class="songs-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="selectSong"></song-list>
       </div>
       <div class="loading-container" v-if="!songs.length">
         <loading></loading>
@@ -30,6 +30,7 @@
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
+import { mapActions } from 'vuex'
 
 // 标题的高度
 const TITLE_HEIGHT = 40
@@ -77,7 +78,15 @@ export default {
     },
     back() {
       this.$router.push('/singer')
-    }
+    },
+    // 选择歌曲播放事件
+    selectSong(item, index) {
+      this.selectPlay({
+        list: this.songs,
+        index: index
+      })
+    },
+    ...mapActions(['selectPlay'])
   },
   watch: {
     scrollY(newY) {
