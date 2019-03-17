@@ -1,4 +1,6 @@
-import { getSongUrl } from 'api/song'
+import { getSongUrl, getLyric } from 'api/song'
+import { ERR_OK } from 'api/config'
+import { Base64 } from 'js-base64'
 
 export default class Song {
   constructor({id, mid, singer, name, album, duration, image, url}) {
@@ -10,6 +12,22 @@ export default class Song {
     this.duration = duration
     this.image = image
     this.url = url
+  }
+
+  getLyric() {
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
+    return new Promise((resolve, reject) => {
+      getLyric(this.mid).then((res) => {
+        if (res.retcode === ERR_OK) {
+          this.lyric = Base64.decode(res.lyric)
+          resolve(this.lyric)
+        } else {
+          reject(new Error('no lyric'))
+        }
+      })
+    })
   }
 }
 
@@ -51,7 +69,11 @@ export function processSongUrl(songs) {
   return getSongUrl(songs).then((midUrlInfo) => {
     midUrlInfo.forEach((info, index) => {
       let song = songs[index]
-      song.url = info.purl.indexOf('http') === -1 ? `http://dl.stream.qqmusic.qq.com/${info.purl}` : info.purl
+      song.url = info.purl ? info.purl : ''
+    })
+    // 过滤掉没有url的歌曲
+    songs = songs.filter((song) => {
+      return song.url
     })
     return songs
   })

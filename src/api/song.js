@@ -2,6 +2,26 @@ import { commonParams, ERR_OK } from './config'
 import { getUid } from 'common/js/uid'
 import axios from 'axios'
 
+// 获取歌词
+export function getLyric(mid) {
+  const url = '/api/lyric'
+  const data = Object.assign({}, commonParams, {
+    songmid: mid,
+    platform: 'yqq',
+    hostUin: 0,
+    needNewCode: 0,
+    categoryId: 10000000,
+    pcachetime: +new Date(),
+    format: 'json'
+  })
+
+  return axios.get(url, {
+    params: data
+  }).then(res => {
+    return res.data
+  })
+}
+
 export function getSongUrl(songs) {
   const url = '/api/getPurlUrl'
 
@@ -36,8 +56,8 @@ export function getSongUrl(songs) {
         if (res.code === ERR_OK) {
           let urlMid = res.req_0
           if (urlMid && urlMid.code === ERR_OK) {
-            const info = urlMid.data.midurlinfo[0]
-            if (info) {
+            const info = urlMid.data.midurlinfo
+            if (info.length) {
               resolve(urlMid.data.midurlinfo)
             } else {
               poll()

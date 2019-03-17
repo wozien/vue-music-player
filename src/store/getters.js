@@ -3,7 +3,7 @@ const getters = {
     return state.singer
   },
   currentSong(state) {
-    return state.playlist[state.currentIndex]
+    return state.playlist[state.currentIndex] || {}
   }
 }
 
