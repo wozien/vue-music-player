@@ -19,8 +19,11 @@
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
         <!-- 播放cd图和歌词区 -->
-        <div class="middle">
-          <div class="middle-l">
+        <div class="middle"
+             @touchstart.prevent="middleTouchStart"
+             @touchmove.prevent="middleTouchMove"
+             @touchend="middleTouchEnd">
+          <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" :class="cdCls">
                 <img class="image" :src="currentSong.image">
@@ -42,6 +45,10 @@
         </div>
         <!-- 底部-->
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot" :class="{'active': currentShow === 'cd'}"></span>
+            <span class="dot" :class="{'active': currentShow === 'lyric'}"></span>
+          </div>
           <!-- 滚动条区域 -->
           <div class="progress-wrapper">
             <span class="time time-l">{{ _formatTime(currentTime) }}</span>
@@ -110,6 +117,7 @@ import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 
 const preTransform = prefixStyle('transform')
+const preDuration = prefixStyle('transitionDuration')
 
 export default {
   name: 'Player',
@@ -122,7 +130,9 @@ export default {
       // 当前的歌词对象
       currentLyric: null,
       // 当前歌词行数
-      currentLine: 0
+      currentLine: 0,
+      // 当前处于cd还是歌词页的标记
+      currentShow: 'cd'
     }
   },
   computed: {
@@ -153,6 +163,9 @@ export default {
       'mode'
     ]),
     ...mapGetters(['currentSong'])
+  },
+  created() {
+    this.touch = {}
   },
   methods: {
     back() {
@@ -308,6 +321,64 @@ export default {
       } else {
         this.$refs.lyricList.scrollTo(0, 0, 1000)
       }
+    },
+    middleTouchStart(e) {
+      const touch = e.touches[0]
+      this.touch.init = true
+      this.touch.startX = touch.pageX
+      this.touch.startY = touch.pageY
+    },
+    middleTouchMove(e) {
+      if (!this.touch.init) {
+        return
+      }
+      const touch = e.touches[0]
+      const deltaX = touch.pageX - this.touch.startX
+      const deltaY = touch.pageY - this.touch.startY
+
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        return
+      }
+
+      // 求手指滑动中歌词页面的x轴的偏移量
+      // 初始化偏移
+      const left = this.currentShow === 'cd' ? 0 : -window.innerWidth
+      const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+      this.touch.percent = Math.abs(offsetWidth / window.innerWidth)
+      this.$refs.lyricList.$el.style[preTransform] = `translate3d(${offsetWidth}px,0,0)`
+      this.$refs.lyricList.$el.style[preDuration] = 0
+      this.$refs.middleL.style.opacity = 1 - this.touch.percent
+      this.$refs.middleL.style[preDuration] = 0
+    },
+    middleTouchEnd() {
+      let offsetWidth
+      let opacity
+      if (this.currentShow === 'cd') {
+        // 当前处于cd页面， 只要滑动超过0.1，就显示歌词页面
+        if (this.touch.percent > 0.1) {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+          this.currentShow = 'lyric'
+        } else {
+          offsetWidth = 0
+          opacity = 1
+        }
+      } else {
+        if (this.touch.percent < 0.9) {
+          offsetWidth = 0
+          this.currentShow = 'cd'
+          opacity = 1
+        } else {
+          offsetWidth = -window.innerWidth
+          opacity = 0
+        }
+      }
+
+      this.$refs.lyricList.$el.style[preTransform] = `translate3d(${offsetWidth}px,0,0)`
+      this.$refs.lyricList.$el.style[preDuration] = '300ms'
+      this.$refs.middleL.style.opacity = opacity
+      this.$refs.middleL.style[preDuration] = '300ms'
+      this.touch.init = false
     },
     _formatTime(time) {
       // 向下取整
@@ -481,6 +552,21 @@ export default {
       position absolute
       bottom 50px
       width 100%
+      .dot-wrapper
+        text-align center
+        font-size 0
+        .dot
+          display inline-block
+          vertical-align middle
+          margin 0 4px
+          width 8px
+          height 8px
+          border-radius 50%
+          background $color-text-l
+          &.active
+            width 20px
+            border-radius 5px
+            background $color-text-ll
       .progress-wrapper
         display flex
         align-items center
