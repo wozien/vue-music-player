@@ -29,6 +29,9 @@
                 <img class="image" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{ playingLyric }}</div>
+            </div>
           </div>
           <!-- 歌词区域 -->
           <scroll class="middle-r" :data="currentLyric && currentLyric.lines" ref="lyricList">
@@ -132,7 +135,9 @@ export default {
       // 当前歌词行数
       currentLine: 0,
       // 当前处于cd还是歌词页的标记
-      currentShow: 'cd'
+      currentShow: 'cd',
+      // 当前播放的歌词
+      playingLyric: ''
     }
   },
   computed: {
@@ -218,41 +223,54 @@ export default {
         return
       }
       this.setPlayingState(!this.playing)
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay()
+      }
     },
     // 上一首
     prev() {
       if (!this.songReady) {
         return
       }
-      let index = this.currentIndex - 1
-      if (index === -1) {
-        index = this.playlist.length - 1
+      if (this.playlist.length === 0) {
+        this.loop()
+      } else {
+        let index = this.currentIndex - 1
+        if (index === -1) {
+          index = this.playlist.length - 1
+        }
+        this.setCurrentIndex(index)
+        if (!this.playing) {
+          this.togglePlay()
+        }
+        this.songReady = false
       }
-      this.setCurrentIndex(index)
-      if (!this.playing) {
-        this.togglePlay()
-      }
-      this.songReady = false
     },
     // 下一首
     next() {
       if (!this.songReady) {
         return
       }
-      let index = this.currentIndex + 1
-      if (index === this.playlist.length) {
-        index = 0
+      if (this.playlist.length === 0) {
+        this.loop()
+      } else {
+        let index = this.currentIndex + 1
+        if (index === this.playlist.length) {
+          index = 0
+        }
+        this.setCurrentIndex(index)
+        if (!this.playing) {
+          this.togglePlay()
+        }
+        this.songReady = false
       }
-      this.setCurrentIndex(index)
-
-      if (!this.playing) {
-        this.togglePlay()
-      }
-      this.songReady = false
     },
     loop() {
       this.$refs.audio.currentTime = 0
       this.$refs.audio.play()
+      if (this.currentLyric) {
+        this.currentLyric.seek(0)
+      }
     },
     // 歌曲加载完成
     ready() {
@@ -280,6 +298,10 @@ export default {
       if (!this.playing) {
         this.togglePlay()
       }
+      if (this.currentLyric) {
+        // 跳到对应的歌词
+        this.currentLyric.seek(1000 * currentTime)
+      }
     },
     // 改播放模式
     changeMode() {
@@ -303,10 +325,15 @@ export default {
       })
       this.setCurrentIndex(index)
     },
+    // 获取歌词对象
     getLyric() {
       this.currentSong.getLyric().then((lyric) => {
         this.currentLyric = new Lyric(lyric, this.handleLyric)
         this.currentLyric.play()
+      }).catch((e) => {
+        this.currentLyric = null
+        this.playingLyric = ''
+        this.currentLine = 0
       })
     },
     // 歌词播放的回调
@@ -321,6 +348,7 @@ export default {
       } else {
         this.$refs.lyricList.scrollTo(0, 0, 1000)
       }
+      this.playingLyric = txt
     },
     middleTouchStart(e) {
       const touch = e.touches[0]
@@ -424,6 +452,9 @@ export default {
       if (newSong.id === oldSong.id) {
         return
       }
+      if (this.currentLyric) {
+        this.currentLyric.stop()
+      }
       this.$nextTick(() => {
         this.$refs.audio.play()
         this.getLyric()
@@ -524,7 +555,7 @@ export default {
         position relative
         width 100%
         height 0
-        padding-bottom 80%
+        padding-top 80%
         .cd-wrapper
           position absolute
           top 0
@@ -548,6 +579,16 @@ export default {
               width 100%
               height 100%
               border-radius 50%
+        .playing-lyric-wrapper
+          width 80%
+          margin 30px auto
+          overflow hidden
+          text-align center
+          .playing-lyric
+            height 20px
+            line-height 20px
+            font-size $font-size-medium
+            color $color-text-l
     .bottom
       position absolute
       bottom 50px

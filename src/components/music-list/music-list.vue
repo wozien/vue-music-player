@@ -31,12 +31,14 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import Loading from 'base/loading/loading'
 import { mapActions } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 // 标题的高度
 const TITLE_HEIGHT = 40
 
 export default {
   name: 'MusicList',
+  mixins: [playlistMixin],
   props: {
     title: {
       type: String,
@@ -91,6 +93,11 @@ export default {
       this.randomPlay({
         list: this.songs
       })
+    },
+    handlePlaylist(playlist) {
+      const bottom = playlist.length ? '60px' : ''
+      this.$refs.scrollList.$el.style.bottom = bottom
+      this.$refs.scrollList.refresh()
     },
     ...mapActions(['selectPlay', 'randomPlay'])
   },
