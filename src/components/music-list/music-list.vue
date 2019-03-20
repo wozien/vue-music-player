@@ -79,7 +79,7 @@ export default {
       this.scrollY = pos.y
     },
     back() {
-      this.$router.push('/singer')
+      this.$router.back()
     },
     // 选择歌曲播放事件
     selectSong(item, index) {

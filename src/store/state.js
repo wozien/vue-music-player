@@ -1,6 +1,9 @@
 import { playMode } from 'common/js/config'
 
 const state = {
+  // 当前歌单
+  disc: {},
+  // 当前歌手
   singer: {},
   // 是否正在播放
   playing: false,

@@ -2,57 +2,56 @@
   <transition name="slide">
     <music-list :title="title" :bgImage="bgImage" :songs="songs"></music-list>
   </transition>
-
 </template>
 
 <script>
-import {mapGetters} from 'vuex'
-import {getSingerDetail} from 'api/singer'
-import {ERR_OK} from 'api/config'
-import {createSong, processSongUrl, isValidMusic} from 'common/js/song'
+import { mapState } from 'vuex'
 import MusicList from 'components/music-list/music-list'
+import { getDiscSong } from 'api/recommend'
+import { ERR_OK } from 'api/config'
+import { createSong, isValidMusic, processSongUrl } from 'common/js/song'
 
 export default {
-  name: 'SingerDetail',
-  data () {
+  name: 'Disc',
+  data() {
     return {
       songs: []
     }
   },
   computed: {
     title() {
-      return this.singer.name
+      return this.disc.dissname
     },
     bgImage() {
-      return this.singer.avatar
+      return this.disc.imgurl
     },
-    ...mapGetters(['singer'])
+    ...mapState(['disc'])
   },
   created() {
-    this._getDetail()
+    this._getDiscSong()
   },
   methods: {
-    _getDetail() {
-      if (!this.singer.id) {
-        this.$router.push('/singer')
+    _getDiscSong() {
+      if (!this.disc.dissid) {
+        this.$router.push('/recommend')
         return
       }
-      getSingerDetail(this.singer.id).then((res) => {
+      getDiscSong(this.disc.dissid).then((res) => {
         if (res.code === ERR_OK) {
-          processSongUrl(this._normalizaSongs(res.data.list)).then((songs) => {
+          processSongUrl(this._normalizeSongs(res.cdlist[0].songlist)).then((songs) => {
             this.songs = songs
           })
         }
       })
     },
-    _normalizaSongs(list) {
-      let res = []
-      list.forEach(({musicData}) => {
+    _normalizeSongs(list) {
+      let ret = []
+      list.forEach((musicData) => {
         if (isValidMusic(musicData)) {
-          res.push(createSong(musicData))
+          ret.push(createSong(musicData))
         }
       })
-      return res
+      return ret
     }
   },
   components: {
