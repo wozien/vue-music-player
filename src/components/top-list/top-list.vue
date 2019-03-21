@@ -1,44 +1,40 @@
 <template>
   <transition name="slide">
-    <music-list :title="title" :bgImage="bgImage" :songs="songs"></music-list>
+    <music-list :title="title" :bgImage="bgImage" :rank="true" :songs="songs"></music-list>
   </transition>
 </template>
 
 <script>
-import { mapState } from 'vuex'
 import MusicList from 'components/music-list/music-list'
-import { getDiscSong } from 'api/recommend'
+import { getMusicList } from 'api/rank'
 import { ERR_OK } from 'api/config'
 import { createSong, isValidMusic, processSongUrl } from 'common/js/song'
 
 export default {
-  name: 'Disc',
+  name: 'TopList',
   data() {
     return {
+      title: '',
       songs: []
     }
   },
   computed: {
-    title() {
-      return this.disc.dissname
-    },
     bgImage() {
-      return this.disc.imgurl
-    },
-    ...mapState(['disc'])
+      if (this.songs.length) {
+        return this.songs[0].image
+      }
+    }
   },
   created() {
-    this._getDiscSong()
+    this.title = this.$route.query.title
+    this._getMusicList()
   },
   methods: {
-    _getDiscSong() {
-      if (!this.disc.dissid) {
-        this.$router.push('/recommend')
-        return
-      }
-      getDiscSong(this.disc.dissid).then((res) => {
+    _getMusicList() {
+      const topid = this.$route.params.id
+      getMusicList(topid).then((res) => {
         if (res.code === ERR_OK) {
-          processSongUrl(this._normalizeSongs(res.cdlist[0].songlist)).then((songs) => {
+          processSongUrl(this._normalizeSongs(res.songlist)).then((songs) => {
             this.songs = songs
           })
         }
@@ -46,7 +42,8 @@ export default {
     },
     _normalizeSongs(list) {
       let ret = []
-      list.forEach((musicData) => {
+      list.forEach((item) => {
+        const musicData = item.data
         if (isValidMusic(musicData)) {
           ret.push(createSong(musicData))
         }
