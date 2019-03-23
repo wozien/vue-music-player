@@ -34,6 +34,45 @@ const actions = {
 
     const randomList = shuffle(list)
     commit(types.SET_PLAYLIST, randomList)
+  },
+  // 插入歌曲
+  insertSong({commit, state}, song) {
+    let playlist = state.playlist.slice()
+    let seqlist = state.sequenceList.slice()
+    let curIndex = state.currentIndex
+    let curSong = playlist[curIndex]
+
+    // 找出歌曲在原播放列表的位置
+    let fpIndex = findIndex(playlist, song)
+    // 插入歌曲
+    playlist.splice(++curIndex, 0, song)
+
+    // 删除原来的存在的歌曲
+    if (fpIndex > -1) {
+      if (fpIndex < curIndex) {
+        playlist.splice(fpIndex, 1)
+        curIndex--
+      } else {
+        playlist.splice(fpIndex + 1, 1)
+      }
+    }
+
+    let cursIndex = findIndex(seqlist, curSong)
+    let fsIndex = findIndex(seqlist, song)
+    seqlist.splice(++cursIndex, 0, song)
+    if (fsIndex > -1) {
+      if (fsIndex < cursIndex) {
+        seqlist.splice(fsIndex, 1)
+      } else {
+        seqlist.splice(fsIndex + 1, 1)
+      }
+    }
+
+    commit(types.SET_PLAYLIST, playlist)
+    commit(types.SET_SEQUENCE_LIST, seqlist)
+    commit(types.SET_CURRENT_INDEX, curIndex)
+    commit(types.SET_FULL_SCREEN, true)
+    commit(types.SET_PLAYING_STATE, true)
   }
 }
 

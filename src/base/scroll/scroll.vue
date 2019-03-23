@@ -10,14 +10,17 @@ import BScroll from 'better-scroll'
 export default {
   name: 'Scroll',
   props: {
+    // 派发scroll事件类型
     probeType: {
       type: Number,
       default: 1
     },
+    // 是否点击
     click: {
       type: Boolean,
       default: true
     },
+    // 是否监听滑动事件
     listenScroll: {
       type: Boolean,
       default: false
@@ -25,6 +28,16 @@ export default {
     data: {
       type: Array,
       default: null
+    },
+    // 是否上拉加载
+    pullup: {
+      type: Boolean,
+      default: false
+    },
+    // 是否监听滑动前事件
+    beforeScroll: {
+      type: Boolean,
+      default: false
     }
   },
   mounted() {
@@ -46,6 +59,21 @@ export default {
         let me = this
         this.scroll.on('scroll', (pos) => {
           me.$emit('scroll', pos)
+        })
+      }
+
+      // 上拉加载
+      if (this.pullup) {
+        this.scroll.on('scrollEnd', () => {
+          if (this.scroll.y <= this.scroll.maxScrollY + 50) {
+            this.$emit('scrollToEnd')
+          }
+        })
+      }
+
+      if (this.beforeScroll) {
+        this.scroll.on('beforeScrollStart', () => {
+          this.$emit('beforeScroll')
         })
       }
     },
