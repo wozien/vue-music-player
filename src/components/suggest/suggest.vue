@@ -120,6 +120,7 @@ export default {
       } else {
         this.insertSong(item)
       }
+      this.$emit('select')
     },
     onBeforeScroll() {
       this.$emit('prepareScroll')

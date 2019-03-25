@@ -19,7 +19,10 @@
       </div>
     </div>
     <div class="search-result" v-show="query">
-      <suggest :query="query" @prepareScroll="blurInput"></suggest>
+      <suggest :query="query"
+               @prepareScroll="blurInput"
+               @select="onSaveSearch"
+      ></suggest>
     </div>
     <router-view></router-view>
   </div>
@@ -30,6 +33,8 @@ import SearchBox from 'base/search-box/search-box'
 import Suggest from 'components/suggest/suggest'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config'
+import { saveSearch } from 'common/js/cache'
+import { mapMutations } from 'vuex'
 
 export default {
   name: 'Search',
@@ -53,13 +58,20 @@ export default {
       // 在移动端，在滑动查询结果前，让输入框失去焦点，收起键盘框
       this.$refs.searchBox.blur()
     },
+    // 保存搜素记录
+    onSaveSearch() {
+      this.setSearchHistory(saveSearch(this.query))
+    },
     _getHotKey() {
       getHotKey().then((res) => {
         if (res.code === ERR_OK) {
           this.hotkey = res.data.hotkey.slice(0, 10)
         }
       })
-    }
+    },
+    ...mapMutations({
+      setSearchHistory: 'SET_SEARCH_HISTORY'
+    })
   },
   components: {
     SearchBox,
