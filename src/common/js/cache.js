@@ -17,6 +17,13 @@ function insertArray(arr, val, compare, maxLen) {
   }
 }
 
+function deleteArray(arr, compare) {
+  const index = arr.findIndex(compare)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
+}
+
 // 保存搜素记录
 export function saveSearch(query) {
   const searches = storage.get(SEARCH_KEY, [])
@@ -29,4 +36,18 @@ export function saveSearch(query) {
 
 export function loadSearch() {
   return storage.get(SEARCH_KEY, [])
+}
+
+export function deleteSearch(query) {
+  const searches = storage.get(SEARCH_KEY, [])
+  deleteArray(searches, (item) => {
+    return item === query
+  })
+  storage.set(SEARCH_KEY, searches)
+  return searches
+}
+
+export function clearSearch() {
+  storage.remove(SEARCH_KEY)
+  return []
 }
