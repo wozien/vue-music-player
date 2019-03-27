@@ -3,8 +3,8 @@
     <div class="search-box-wrapper">
       <search-box ref="searchBox" @query="onQueryChange"></search-box>
     </div>
-    <div class="shortcut-wrapper" v-show="!query">
-      <div class="shortcut">
+    <div class="shortcut-wrapper" v-show="!query" ref="shortcutWrapper">
+      <scroll class="shortcut" ref="shortcut" :data="shortcut">
         <div>
           <div class="hot-key">
             <h1 class="title">热门搜索</h1>
@@ -27,13 +27,12 @@
                          @delete="deleteOne"></search-list>
           </div>
         </div>
-      </div>
+      </scroll>
     </div>
-    <div class="search-result" v-show="query">
-      <suggest :query="query"
+    <div class="search-result" v-show="query" ref="searchResult">
+      <suggest :query="query" ref="suggest"
                @prepareScroll="blurInput"
-               @select="onSaveSearch"
-      ></suggest>
+               @select="onSaveSearch"></suggest>
     </div>
     <confirm text="是否清空所有搜索历史" confirmBtnText="清空" ref="confirm"
              @confirm="deleteAll"></confirm>
@@ -46,13 +45,16 @@ import SearchBox from 'base/search-box/search-box'
 import Suggest from 'components/suggest/suggest'
 import SearchList from 'base/search-list/search-list'
 import Confirm from 'base/confirm/confirm'
+import Scroll from 'base/scroll/scroll'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config'
 import { saveSearch, deleteSearch, clearSearch } from 'common/js/cache'
 import { mapMutations, mapState } from 'vuex'
+import { playlistMixin } from 'common/js/mixin'
 
 export default {
   name: 'Search',
+  mixins: [playlistMixin],
   data() {
     return {
       hotkey: [],
@@ -60,6 +62,9 @@ export default {
     }
   },
   computed: {
+    shortcut() {
+      return this.hotkey.concat(this.query)
+    },
     ...mapState(['searchHistory'])
   },
   created() {
@@ -89,6 +94,14 @@ export default {
     showConfirm() {
       this.$refs.confirm.show()
     },
+    handlePlaylist(playlist) {
+      const bottom = playlist.length ? '60px' : ''
+      this.$refs.shortcutWrapper.style.bottom = bottom
+      this.$refs.searchResult.style.bottom = bottom
+
+      this.$refs.shortcut.refresh()
+      this.$refs.suggest.refresh()
+    },
     _getHotKey() {
       getHotKey().then((res) => {
         if (res.code === ERR_OK) {
@@ -104,7 +117,8 @@ export default {
     SearchBox,
     Suggest,
     SearchList,
-    Confirm
+    Confirm,
+    Scroll
   }
 }
 </script>
@@ -121,6 +135,7 @@ export default {
     top 178px
     bottom 0
     width 100%
+    overflow hidden
     .shortcut
       height 100%
       .hot-key
