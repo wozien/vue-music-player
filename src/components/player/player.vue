@@ -98,13 +98,16 @@
           </progress-circle>
         </div>
         <div class="control">
-          <i class="icon-playlist"></i>
+          <i class="icon-playlist" @click.stop="showPlaylist"></i>
         </div>
       </div>
     </transition>
     <!-- 歌曲播放dom -->
     <audio :src="currentSong.url" ref="audio" @canplay="ready" @error="error"
            @timeupdate="updateTime" @ended="end"></audio>
+
+    <!-- 播放列表 -->
+    <playlist ref="playlist"></playlist>
   </div>
 </template>
 
@@ -114,6 +117,7 @@ import { prefixStyle } from 'common/js/dom'
 import animations from 'create-keyframe-animation'
 import ProgressBar from 'base/progress/progress-bar'
 import ProgressCircle from 'base/progress/progress-circle'
+import Playlist from 'components/playlist/playlist'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
@@ -439,6 +443,9 @@ export default {
         scale
       }
     },
+    showPlaylist() {
+      this.$refs.playlist.show()
+    },
     ...mapMutations({
       selectFullScreen: 'SET_FULL_SCREEN',
       setPlayingState: 'SET_PLAYING_STATE',
@@ -471,7 +478,8 @@ export default {
   components: {
     ProgressBar,
     ProgressCircle,
-    Scroll
+    Scroll,
+    Playlist
   }
 }
 </script>
