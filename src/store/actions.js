@@ -73,6 +73,30 @@ const actions = {
     commit(types.SET_CURRENT_INDEX, curIndex)
     commit(types.SET_FULL_SCREEN, true)
     commit(types.SET_PLAYING_STATE, true)
+  },
+  // 播放列表中删除歌曲
+  deleteSong({commit, state}, song) {
+    let playlist = state.playlist.slice()
+    let seqlist = state.sequenceList.slice()
+    let curIndex = state.currentIndex
+    const pIndex = findIndex(playlist, song)
+    const sIndex = findIndex(seqlist, song)
+    playlist.splice(pIndex, 1)
+    seqlist.splice(sIndex, 1)
+
+    // 当前歌曲在删除的后面
+    // 当前歌曲是最后一条，且删除最后一条
+    if (curIndex > pIndex || curIndex === playlist.length) {
+      curIndex--
+    }
+    commit(types.SET_PLAYLIST, playlist)
+    commit(types.SET_SEQUENCE_LIST, seqlist)
+    commit(types.SET_CURRENT_INDEX, curIndex)
+    if (!playlist.length) {
+      commit(types.SET_PLAYING_STATE, false)
+    } else {
+      commit(types.SET_PLAYING_STATE, true)
+    }
   }
 }
 

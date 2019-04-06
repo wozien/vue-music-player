@@ -4,26 +4,27 @@
       <div class="list-wrapper" @click.stop>
         <div class="list-header">
           <h1 class="title">
-            <i class="icon"></i>
+            <i class="icon icon-sequence"></i>
             <span class="text">11</span>
             <span class="clear"><i class="icon-clear"></i></span>
           </h1>
         </div>
 
-        <div class="list-content">
+        <scroll class="list-content" ref="listContent" :data="sequenceList">
           <ul>
-            <li class="item">
-              <i class="current"></i>
-              <span class="text">111</span>
+            <li class="item" v-for="(item, index) in sequenceList" :key="index"
+                @click="selectItem(item, index)" ref="listItem">
+              <i class="current" :class="getPlayIcon(item)"></i>
+              <span class="text" v-html="item.name"></span>
               <span class="like">
-                <i class="icon-like"></i>
+                <i class="icon-not-favorite"></i>
               </span>
-              <span class="delete">
+              <span class="delete" @click="deleteOne(item)">
                 <i class="icon-delete"></i>
               </span>
             </li>
           </ul>
-        </div>
+        </scroll>
 
         <div class="list-operate">
           <div class="add">
@@ -42,6 +43,10 @@
 </template>
 
 <script>
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import Scroll from 'base/scroll/scroll'
+import { playMode } from 'common/js/config'
+
 export default {
   name: 'Playlist',
   data() {
@@ -49,13 +54,67 @@ export default {
       showFlag: false
     }
   },
+  computed: {
+    ...mapState([
+      'playlist',
+      'sequenceList',
+      'mode'
+    ]),
+    ...mapGetters(['currentSong'])
+  },
   methods: {
     show() {
       this.showFlag = true
+      setTimeout(() => {
+        this.$refs.listContent.refresh()
+        this.scrollToCurrent(this.currentSong)
+      }, 20)
     },
     hide() {
       this.showFlag = false
+    },
+    getPlayIcon(item) {
+      if (this.currentSong.id === item.id) {
+        return 'icon-play'
+      }
+      return ''
+    },
+    selectItem(item, index) {
+      if (this.mode === playMode.random) {
+        index = this.playlist.findIndex((song) => {
+          return song.id === item.id
+        })
+      }
+      this.setCurrentIndex(index)
+      this.setPlayStatus(true)
+    },
+    scrollToCurrent(current) {
+      const index = this.sequenceList.findIndex((song) => {
+        return song.id === current.id
+      })
+      this.$refs.listContent.scrollToElement(this.$refs.listItem[index])
+    },
+    deleteOne(item) {
+
+    },
+    ...mapMutations({
+      setCurrentIndex: 'SET_CURRENT_INDEX',
+      setPlayStatus: 'SET_PLAYING_STATE'
+    }),
+    ...mapActions(['deleteSong'])
+  },
+  watch: {
+    currentSong(newSong, oldSong) {
+      if (!this.showFlag || newSong.id === oldSong.id) {
+        return
+      }
+      setTimeout(() => {
+        this.scrollToCurrent(newSong)
+      }, 20)
     }
+  },
+  components: {
+    Scroll
   }
 }
 </script>
