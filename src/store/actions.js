@@ -92,11 +92,13 @@ const actions = {
     commit(types.SET_PLAYLIST, playlist)
     commit(types.SET_SEQUENCE_LIST, seqlist)
     commit(types.SET_CURRENT_INDEX, curIndex)
-    if (!playlist.length) {
-      commit(types.SET_PLAYING_STATE, false)
-    } else {
-      commit(types.SET_PLAYING_STATE, true)
-    }
+    commit(types.SET_PLAYING_STATE, playlist.length > 0)
+  },
+  deleteSonglist({commit}) {
+    commit(types.SET_PLAYLIST, [])
+    commit(types.SET_SEQUENCE_LIST, [])
+    commit(types.SET_CURRENT_INDEX, -1)
+    commit(types.SET_PLAYING_STATE, false)
   }
 }
 

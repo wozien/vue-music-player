@@ -119,14 +119,15 @@ import ProgressBar from 'base/progress/progress-bar'
 import ProgressCircle from 'base/progress/progress-circle'
 import Playlist from 'components/playlist/playlist'
 import { playMode } from 'common/js/config'
-import { shuffle } from 'common/js/util'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
+import { playerMixin } from 'common/js/mixin'
 
 const preTransform = prefixStyle('transform')
 const preDuration = prefixStyle('transitionDuration')
 
 export default {
+  mixins: [playerMixin],
   name: 'Player',
   data() {
     return {
@@ -151,9 +152,6 @@ export default {
     miniIcon() {
       return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
     },
-    modeIcon() {
-      return this.mode === playMode.sequence ? 'icon-sequence' : (this.mode === playMode.loop ? 'icon-loop' : 'icon-random')
-    },
     cdCls() {
       return this.playing ? 'play' : 'play pause'
     },
@@ -165,11 +163,8 @@ export default {
     },
     ...mapState([
       'fullScreen',
-      'sequenceList',
-      'playlist',
       'playing',
-      'currentIndex',
-      'mode'
+      'currentIndex'
     ]),
     ...mapGetters(['currentSong'])
   },
@@ -307,28 +302,6 @@ export default {
         this.currentLyric.seek(1000 * currentTime)
       }
     },
-    // 改播放模式
-    changeMode() {
-      const mode = (this.mode + 1) % 3
-      this.setPlayMode(mode)
-
-      let list = []
-      // 随机播放
-      if (mode === playMode.random) {
-        list = shuffle(this.sequenceList)
-      } else {
-        list = this.sequenceList
-      }
-      this.resetCurrentIndex(list)
-      this.setPlaylist(list)
-    },
-    // 切随机模式当前歌曲保持不变
-    resetCurrentIndex(list) {
-      let index = list.findIndex((song) => {
-        return song.id === this.currentSong.id
-      })
-      this.setCurrentIndex(index)
-    },
     // 获取歌词对象
     getLyric() {
       this.currentSong.getLyric().then((lyric) => {
@@ -447,16 +420,12 @@ export default {
       this.$refs.playlist.show()
     },
     ...mapMutations({
-      selectFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE',
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayMode: 'SET_PLAY_MODE',
-      setPlaylist: 'SET_PLAYLIST'
+      selectFullScreen: 'SET_FULL_SCREEN'
     })
   },
   watch: {
     currentSong(newSong, oldSong) {
-      if (newSong.id === oldSong.id) {
+      if (!newSong.id || newSong.id === oldSong.id) {
         return
       }
       if (this.currentLyric) {

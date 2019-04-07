@@ -4,26 +4,28 @@
       <div class="list-wrapper" @click.stop>
         <div class="list-header">
           <h1 class="title">
-            <i class="icon icon-sequence"></i>
-            <span class="text">11</span>
-            <span class="clear"><i class="icon-clear"></i></span>
+            <i class="icon" :class="modeIcon" @click="changeMode"></i>
+            <span class="text">{{modeText}}</span>
+            <span class="clear" @click="showConfirm">
+              <i class="icon-clear"></i>
+            </span>
           </h1>
         </div>
 
         <scroll class="list-content" ref="listContent" :data="sequenceList">
-          <ul>
-            <li class="item" v-for="(item, index) in sequenceList" :key="index"
-                @click="selectItem(item, index)" ref="listItem">
+          <transition-group name="list" ref="list" tag="ul">
+            <li class="item" v-for="(item, index) in sequenceList" :key="item.id"
+                @click="selectItem(item, index)">
               <i class="current" :class="getPlayIcon(item)"></i>
               <span class="text" v-html="item.name"></span>
               <span class="like">
                 <i class="icon-not-favorite"></i>
               </span>
-              <span class="delete" @click="deleteOne(item)">
+              <span class="delete" @click.stop="deleteOne(item)">
                 <i class="icon-delete"></i>
               </span>
             </li>
-          </ul>
+          </transition-group>
         </scroll>
 
         <div class="list-operate">
@@ -37,17 +39,22 @@
           <span>关闭</span>
         </div>
       </div>
-    </div>
 
+      <confirm text="是否清空播放列表" confirmBtnText="清空" ref="confirm"
+               @confirm="clearAll"></confirm>
+    </div>
   </transition>
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import Scroll from 'base/scroll/scroll'
+import Confirm from 'base/confirm/confirm'
 import { playMode } from 'common/js/config'
+import { playerMixin } from 'common/js/mixin'
 
 export default {
+  mixins: [playerMixin],
   name: 'Playlist',
   data() {
     return {
@@ -55,11 +62,12 @@ export default {
     }
   },
   computed: {
-    ...mapState([
-      'playlist',
-      'sequenceList',
-      'mode'
-    ]),
+    modeText() {
+      if (this.mode === playMode.random) {
+        return '随机播放'
+      }
+      return this.mode === playMode.loop ? '单曲循环' : '顺序播放'
+    },
     ...mapGetters(['currentSong'])
   },
   methods: {
@@ -74,10 +82,7 @@ export default {
       this.showFlag = false
     },
     getPlayIcon(item) {
-      if (this.currentSong.id === item.id) {
-        return 'icon-play'
-      }
-      return ''
+      return this.currentSong.id === item.id ? 'icon-play' : ''
     },
     selectItem(item, index) {
       if (this.mode === playMode.random) {
@@ -86,22 +91,28 @@ export default {
         })
       }
       this.setCurrentIndex(index)
-      this.setPlayStatus(true)
+      this.setPlayingState(true)
     },
     scrollToCurrent(current) {
       const index = this.sequenceList.findIndex((song) => {
         return song.id === current.id
       })
-      this.$refs.listContent.scrollToElement(this.$refs.listItem[index])
+      this.$refs.listContent.scrollToElement(this.$refs.list.$el.children[index], 300)
+    },
+    showConfirm() {
+      this.$refs.confirm.show()
     },
     deleteOne(item) {
-
+      this.deleteSong(item)
+      if (!this.playlist.length) {
+        this.hide()
+      }
     },
-    ...mapMutations({
-      setCurrentIndex: 'SET_CURRENT_INDEX',
-      setPlayStatus: 'SET_PLAYING_STATE'
-    }),
-    ...mapActions(['deleteSong'])
+    clearAll() {
+      this.deleteSonglist()
+      this.hide()
+    },
+    ...mapActions(['deleteSong', 'deleteSonglist'])
   },
   watch: {
     currentSong(newSong, oldSong) {
@@ -114,7 +125,8 @@ export default {
     }
   },
   components: {
-    Scroll
+    Scroll,
+    Confirm
   }
 }
 </script>
@@ -174,6 +186,10 @@ export default {
         height 40px
         padding 0 30px 0 20px
         overflow hidden
+        &.list-enter-active, &.list-leave-active
+          transition all .3s
+        &.list-enter, &.list-leave-to
+          height 0
         .current
           flex 0 0 20px
           width 20px
