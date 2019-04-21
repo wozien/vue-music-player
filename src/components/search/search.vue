@@ -48,46 +48,26 @@ import Confirm from 'base/confirm/confirm'
 import Scroll from 'base/scroll/scroll'
 import { getHotKey } from 'api/search'
 import { ERR_OK } from 'api/config'
-import { saveSearch, deleteSearch, clearSearch } from 'common/js/cache'
-import { mapMutations, mapState } from 'vuex'
-import { playlistMixin } from 'common/js/mixin'
+import { clearSearch } from 'common/js/cache'
+import { playlistMixin, searchMixin } from 'common/js/mixin'
 
 export default {
   name: 'Search',
-  mixins: [playlistMixin],
+  mixins: [playlistMixin, searchMixin],
   data() {
     return {
-      hotkey: [],
-      query: ''
+      hotkey: []
     }
   },
   computed: {
     shortcut() {
       return this.hotkey.concat(this.query)
-    },
-    ...mapState(['searchHistory'])
+    }
   },
   created() {
     this._getHotKey()
   },
   methods: {
-    setQuery(query) {
-      this.$refs.searchBox.setQuery(query)
-    },
-    onQueryChange(query) {
-      this.query = query
-    },
-    blurInput() {
-      // 在移动端，在滑动查询结果前，让输入框失去焦点，收起键盘框
-      this.$refs.searchBox.blur()
-    },
-    // 保存搜素记录
-    onSaveSearch() {
-      this.setSearchHistory(saveSearch(this.query))
-    },
-    deleteOne(item) {
-      this.setSearchHistory(deleteSearch(item))
-    },
     deleteAll() {
       this.setSearchHistory(clearSearch())
     },
@@ -108,10 +88,7 @@ export default {
           this.hotkey = res.data.hotkey.slice(0, 10)
         }
       })
-    },
-    ...mapMutations({
-      setSearchHistory: 'SET_SEARCH_HISTORY'
-    })
+    }
   },
   components: {
     SearchBox,

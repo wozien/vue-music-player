@@ -122,6 +122,7 @@ import { playMode } from 'common/js/config'
 import Lyric from 'lyric-parser'
 import Scroll from 'base/scroll/scroll'
 import { playerMixin } from 'common/js/mixin'
+import { savePlayHistory } from 'common/js/cache'
 
 const preTransform = prefixStyle('transform')
 const preDuration = prefixStyle('transitionDuration')
@@ -274,6 +275,7 @@ export default {
     // 歌曲加载完成
     ready() {
       this.songReady = true
+      this.setPlayHistory(savePlayHistory(this.currentSong))
     },
     error() {
       this.songReady = true
@@ -420,7 +422,8 @@ export default {
       this.$refs.playlist.show()
     },
     ...mapMutations({
-      selectFullScreen: 'SET_FULL_SCREEN'
+      selectFullScreen: 'SET_FULL_SCREEN',
+      setPlayHistory: 'SET_PLAY_HISTORY'
     })
   },
   watch: {

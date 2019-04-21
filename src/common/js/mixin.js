@@ -1,6 +1,7 @@
 import { mapState, mapMutations } from 'vuex'
 import { shuffle } from 'common/js/util'
 import { playMode } from 'common/js/config'
+import { saveSearch, deleteSearch } from 'common/js/cache'
 
 export const playlistMixin = {
   computed: {
@@ -66,6 +67,39 @@ export const playerMixin = {
       setCurrentIndex: 'SET_CURRENT_INDEX',
       setPlayMode: 'SET_PLAY_MODE',
       setPlaylist: 'SET_PLAYLIST'
+    })
+  }
+}
+
+export const searchMixin = {
+  data() {
+    return {
+      query: ''
+    }
+  },
+  computed: {
+    ...mapState(['searchHistory'])
+  },
+  methods: {
+    onQueryChange(query) {
+      this.query = query
+    },
+    blurInput() {
+      // 在移动端，在滑动查询结果前，让输入框失去焦点，收起键盘框
+      this.$refs.searchBox.blur()
+    },
+    // 保存搜素记录
+    onSaveSearch() {
+      this.setSearchHistory(saveSearch(this.query))
+    },
+    setQuery(query) {
+      this.$refs.searchBox.setQuery(query)
+    },
+    deleteOne(item) {
+      this.setSearchHistory(deleteSearch(item))
+    },
+    ...mapMutations({
+      setSearchHistory: 'SET_SEARCH_HISTORY'
     })
   }
 }
