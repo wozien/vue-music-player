@@ -11,13 +11,28 @@
         <i class="icon-play"></i>
         <span class="text">随机播放全部</span>
       </div>
-      <div class="list-wrapper"></div>
+      <div class="list-wrapper">
+        <scroll ref="favoriteList" v-show="currentIndex===0" :data="favoriteList" class="list-scroll">
+          <div class="list-inner">
+            <song-list :songs="favoriteList" @select="selectItem"></song-list>
+          </div>
+        </scroll>
+        <scroll ref="playHistory" v-show="currentIndex===1" :data="playHistory" class="list-scroll">
+          <div class="list-inner">
+            <song-list :songs="playHistory" @select="selectItem"></song-list>
+          </div>
+        </scroll>
+      </div>
     </div>
   </transition>
 </template>
 
 <script>
 import Switches from 'base/switches/switches'
+import Scroll from 'base/scroll/scroll'
+import SongList from 'base/song-list/song-list'
+import Song from 'common/js/song'
+import {mapState, mapActions} from 'vuex'
 
 export default {
   name: 'UserCenter',
@@ -31,16 +46,28 @@ export default {
       }]
     }
   },
+  computed: {
+    ...mapState([
+      'favoriteList',
+      'playHistory'
+    ])
+  },
   methods: {
     switchItem(index) {
       this.currentIndex = index
     },
     back() {
       this.$router.back()
-    }
+    },
+    selectItem(song) {
+      this.insertSong(new Song(song))
+    },
+    ...mapActions(['insertSong'])
   },
   components: {
-    Switches
+    Switches,
+    Scroll,
+    SongList
   }
 }
 </script>
@@ -96,4 +123,9 @@ export default {
     top 110px
     bottom 0
     width 100%
+    .list-scroll
+      height 100%
+      overflow hidden
+      .list-inner
+        padding 20px 30px
 </style>
