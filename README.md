@@ -1,6 +1,6 @@
 # vue-music
 
-> 基于vue2.x开发音乐播放器
+> 基于vue2.x开发音乐播放器--vue-cli3
 
 ## Build Setup
 
